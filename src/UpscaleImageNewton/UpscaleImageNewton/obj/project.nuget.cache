@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "OfnvhhvVVtE=",
+  "success": true,
+  "projectFilePath": "E:\\TI\\Projetos\\octave\\upscale\\src\\UpscaleImageNewton\\UpscaleImageNewton\\UpscaleImageNewton.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\mathe\\.nuget\\packages\\ilgpu\\1.5.1\\ilgpu.1.5.1.nupkg.sha512",
+    "C:\\Users\\mathe\\.nuget\\packages\\ilgpu.algorithms\\1.5.1\\ilgpu.algorithms.1.5.1.nupkg.sha512",
+    "C:\\Users\\mathe\\.nuget\\packages\\microsoft.win32.systemevents\\8.0.0\\microsoft.win32.systemevents.8.0.0.nupkg.sha512",
+    "C:\\Users\\mathe\\.nuget\\packages\\system.drawing.common\\8.0.11\\system.drawing.common.8.0.11.nupkg.sha512"
+  ],
+  "logs": []
+}
