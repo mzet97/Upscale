@@ -8,7 +8,7 @@ using ILGPU.Algorithms;
 
 public class ImageUpscalerParallelGPU
 {
-    public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, double scaleFactor)
+    public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, string outputImagePath, double scaleFactor)
     {
         // Inicializa o contexto e o acelerador do ILGPU
         using var context = Context.CreateDefault();
@@ -51,7 +51,7 @@ public class ImageUpscalerParallelGPU
         var upscaledImage = CreateBitmapFromBytes(upscaledBytes, newCols, newRows, PixelFormat.Format32bppArgb);
 
         // Salva a imagem final em JPG
-        upscaledImage.Save("upscaled_image_newton_optimized.jpg", ImageFormat.Jpeg);
+        upscaledImage.Save(outputImagePath, ImageFormat.Jpeg);
     }
 
     static void GPUProcessKernel(

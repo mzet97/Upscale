@@ -4,7 +4,7 @@ using System.Drawing.Imaging;
 
 public class ImageUpscaler
 {
-    public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, double scaleFactor)
+    public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, string outputImagePath, double scaleFactor)
     {
         // Carregar a imagem em JPG
         Bitmap originalImage = new Bitmap(inputImagePath);
@@ -33,7 +33,7 @@ public class ImageUpscaler
         }
 
         // Salvar a imagem final em JPG
-        upscaledImage.Save("upscaled_image_newton_optimized.jpg", ImageFormat.Jpeg);
+        upscaledImage.Save(outputImagePath, ImageFormat.Jpeg);
         upscaledImage.Dispose();
         originalImage.Dispose();
     }
