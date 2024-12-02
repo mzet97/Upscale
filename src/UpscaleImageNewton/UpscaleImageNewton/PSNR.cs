@@ -13,7 +13,6 @@ public class PSNR
             int width = original.Width;
             int height = original.Height;
 
-            // Pré-carregar os pixels em arrays para evitar acesso direto ao Bitmap
             Color[,] originalPixels = LoadPixels(original);
             Color[,] alteredPixels = LoadPixels(altered);
 

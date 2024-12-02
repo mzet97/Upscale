@@ -7,19 +7,15 @@ public class ImageUpscalerParallel
 {
     public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, string outputImagePath, double scaleFactor)
     {
-        // Carregar a imagem em JPG
         Bitmap originalImage = new Bitmap(inputImagePath);
 
-        // Verificar se a imagem é colorida ou em escala de cinza
         Bitmap upscaledImage;
         if (originalImage.PixelFormat == PixelFormat.Format24bppRgb)
         {
-            // Imagem colorida (RGB), processar cada canal separadamente
             Bitmap redChannel = ExtractChannel(originalImage, 0);
             Bitmap greenChannel = ExtractChannel(originalImage, 1);
             Bitmap blueChannel = ExtractChannel(originalImage, 2);
 
-            // Aplicar o algoritmo a cada canal em paralelo
             Bitmap upscaledRed = null;
             Bitmap upscaledGreen = null;
             Bitmap upscaledBlue = null;
@@ -30,16 +26,13 @@ public class ImageUpscalerParallel
                 () => { upscaledBlue = ProcessChannel(blueChannel, scaleFactor); }
             );
 
-            // Combinar os canais novamente
             upscaledImage = CombineChannels(upscaledRed, upscaledGreen, upscaledBlue);
         }
         else
         {
-            // Imagem em escala de cinza
             upscaledImage = ProcessChannel(originalImage, scaleFactor);
         }
 
-        // Salvar a imagem final em JPG
         upscaledImage.Save(outputImagePath, ImageFormat.Jpeg);
         upscaledImage.Dispose();
         originalImage.Dispose();
@@ -88,7 +81,6 @@ public class ImageUpscalerParallel
         {
             for (int j = 0; j < newCols; j++)
             {
-                // Encontrar o valor do pixel mais próximo
                 int originalX = (int)Math.Round(xi[i]);
                 int originalY = (int)Math.Round(yi[j]);
 
@@ -98,10 +90,10 @@ public class ImageUpscalerParallel
                 int originalIndex = (originalX * channelData.Stride) + (originalY * bytesPerPixel);
                 int upscaledIndex = (i * upscaledData.Stride) + (j * bytesPerPixel);
 
-                upscaledBytes[upscaledIndex] = channelBytes[originalIndex];     // Blue
-                upscaledBytes[upscaledIndex + 1] = channelBytes[originalIndex + 1]; // Green
-                upscaledBytes[upscaledIndex + 2] = channelBytes[originalIndex + 2]; // Red
-                upscaledBytes[upscaledIndex + 3] = 255; // Alpha channel
+                upscaledBytes[upscaledIndex] = channelBytes[originalIndex];
+                upscaledBytes[upscaledIndex + 1] = channelBytes[originalIndex + 1];
+                upscaledBytes[upscaledIndex + 2] = channelBytes[originalIndex + 2];
+                upscaledBytes[upscaledIndex + 3] = 255;
             }
         }
 

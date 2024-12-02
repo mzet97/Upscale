@@ -6,33 +6,26 @@ public class ImageUpscaler
 {
     public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, string outputImagePath, double scaleFactor)
     {
-        // Carregar a imagem em JPG
         Bitmap originalImage = new Bitmap(inputImagePath);
 
-        // Verificar se a imagem é colorida ou em escala de cinza
         Bitmap upscaledImage;
         if (originalImage.PixelFormat == PixelFormat.Format24bppRgb)
         {
-            // Imagem colorida (RGB), processar cada canal separadamente
             Bitmap redChannel = ExtractChannel(originalImage, 0);
             Bitmap greenChannel = ExtractChannel(originalImage, 1);
             Bitmap blueChannel = ExtractChannel(originalImage, 2);
 
-            // Aplicar o algoritmo a cada canal
             Bitmap upscaledRed = ProcessChannel(redChannel, scaleFactor);
             Bitmap upscaledGreen = ProcessChannel(greenChannel, scaleFactor);
             Bitmap upscaledBlue = ProcessChannel(blueChannel, scaleFactor);
 
-            // Combinar os canais novamente
             upscaledImage = CombineChannels(upscaledRed, upscaledGreen, upscaledBlue);
         }
         else
         {
-            // Imagem em escala de cinza
             upscaledImage = ProcessChannel(originalImage, scaleFactor);
         }
 
-        // Salvar a imagem final em JPG
         upscaledImage.Save(outputImagePath, ImageFormat.Jpeg);
         upscaledImage.Dispose();
         originalImage.Dispose();
@@ -72,7 +65,6 @@ public class ImageUpscaler
         {
             for (int j = 0; j < newCols; j++)
             {
-                // Interpolação simples usando Newton (usando 4 vizinhos)
                 double[] rowIdx = { Math.Max(1, Math.Floor(xi[i]) - 1), Math.Min(channel.Height, Math.Ceiling(xi[i]) + 1) };
                 double[] colIdx = { Math.Max(1, Math.Floor(yi[j]) - 1), Math.Min(channel.Width, Math.Ceiling(yi[j]) + 1) };
 
@@ -97,11 +89,6 @@ public class ImageUpscaler
 
     private static double NewtonInterpolation(Bitmap channel, double[] rowIdx, double[] colIdx, double xi, double yi)
     {
-        // Método simplificado para realizar interpolação de Newton.
-        // Este método deve ser ajustado para realizar a interpolação bidimensional correta.
-        // Aqui é implementada uma interpolação aproximada com base nos valores locais.
-
-        // Para simplificar, vamos pegar o valor mais próximo.
         int x = (int)Math.Min(channel.Height - 1, Math.Max(0, Math.Round(xi) - 1));
         int y = (int)Math.Min(channel.Width - 1, Math.Max(0, Math.Round(yi) - 1));
 

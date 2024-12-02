@@ -10,22 +10,17 @@ public class ImageUpscalerParallelGPU
 {
     public static void UpscaleImageNewtonOptimizedJpg(string inputImagePath, string outputImagePath, double scaleFactor)
     {
-        // Inicializa o contexto e o acelerador do ILGPU
         using var context = Context.CreateDefault();
         using var accelerator = context.GetPreferredDevice(preferCPU: false).CreateAccelerator(context);
 
-        // Carrega a imagem original
         using var originalImage = new Bitmap(inputImagePath);
 
-        // Converte a imagem para um buffer de bytes para processamento mais eficiente
         var originalBytes = GetImageBytes(originalImage, out int width, out int height, out PixelFormat pixelFormat);
 
-        // Calcula o novo tamanho da imagem
         int newRows = (int)Math.Round(height * scaleFactor);
         int newCols = (int)Math.Round(width * scaleFactor);
         byte[] upscaledBytes = new byte[newCols * newRows * 4];
 
-        // Aloca buffers na GPU
         using var originalBuffer = accelerator.Allocate1D<byte>(originalBytes.Length);
         using var upscaledBuffer = accelerator.Allocate1D<byte>(upscaledBytes.Length);
         float[] xi = Linspace(0, height - 1, newRows);
@@ -33,24 +28,19 @@ public class ImageUpscalerParallelGPU
         using var xiBuffer = accelerator.Allocate1D(xi);
         using var yiBuffer = accelerator.Allocate1D(yi);
 
-        // Copia os dados para a GPU
         originalBuffer.CopyFromCPU(originalBytes);
         xiBuffer.CopyFromCPU(xi);
         yiBuffer.CopyFromCPU(yi);
 
-        // Define e executa o kernel
         var kernel = accelerator.LoadAutoGroupedStreamKernel<Index2D, ArrayView<byte>, ArrayView<byte>, int, int, ArrayView<float>, ArrayView<float>>(GPUProcessKernel);
         var extent = new Index2D(newRows, newCols);
         kernel(extent, originalBuffer.View, upscaledBuffer.View, width, height, xiBuffer.View, yiBuffer.View);
         accelerator.Synchronize();
 
-        // Copia os dados de volta para a CPU
         upscaledBuffer.CopyToCPU(upscaledBytes);
 
-        // Cria a nova imagem a partir dos dados processados
         var upscaledImage = CreateBitmapFromBytes(upscaledBytes, newCols, newRows, PixelFormat.Format32bppArgb);
 
-        // Salva a imagem final em JPG
         upscaledImage.Save(outputImagePath, ImageFormat.Jpeg);
     }
 
@@ -66,11 +56,9 @@ public class ImageUpscalerParallelGPU
         int i = index.X;
         int j = index.Y;
 
-        // Coordenadas interpoladas
         float xValue = xi[i];
         float yValue = yi[j];
 
-        // Posição dos pixels vizinhos para a interpolação
         int x0 = XMath.Clamp((int)Math.Floor(xValue) - 1, 0, originalHeight - 3);
         int y0 = XMath.Clamp((int)Math.Floor(yValue) - 1, 0, originalWidth - 3);
 
@@ -85,10 +73,8 @@ public class ImageUpscalerParallelGPU
         yPoints[1] = y0 + 1;
         yPoints[2] = y0 + 2;
 
-        // Interpolação de Newton
-        for (int c = 0; c < 4; c++) // RGBA
+        for (int c = 0; c < 4; c++)
         {
-            // Valores dos pixels vizinhos
             float f00 = original[(x0 * originalWidth + y0) * 4 + c];
             float f01 = original[(x0 * originalWidth + y0 + 1) * 4 + c];
             float f02 = original[(x0 * originalWidth + y0 + 2) * 4 + c];
@@ -99,22 +85,18 @@ public class ImageUpscalerParallelGPU
             float f21 = original[((x0 + 2) * originalWidth + y0 + 1) * 4 + c];
             float f22 = original[((x0 + 2) * originalWidth + y0 + 2) * 4 + c];
 
-            // Interpolação ao longo de x
             float fx0 = NewtonInterpolation(xPoints, new float[] { f00, f10, f20 }, xValue);
             float fx1 = NewtonInterpolation(xPoints, new float[] { f01, f11, f21 }, xValue);
             float fx2 = NewtonInterpolation(xPoints, new float[] { f02, f12, f22 }, xValue);
 
-            // Interpolação ao longo de y
             float interpolatedValue = NewtonInterpolation(yPoints, new float[] { fx0, fx1, fx2 }, yValue);
 
-            // Atribui o valor interpolado ao pixel upscaled
             upscaled[(i * upscaled.Extent.X / 4 + j) * 4 + c] = (byte)XMath.Clamp(interpolatedValue, 0f, 255f);
         }
     }
 
     static float NewtonInterpolation(float[] x, float[] y, float value)
     {
-        // Método de interpolação de Newton com 3 pontos
         float a0 = y[0];
         float a1 = (y[1] - y[0]) / (x[1] - x[0]);
         float a2 = ((y[2] - y[1]) / (x[2] - x[1]) - a1) / (x[2] - x[0]);
